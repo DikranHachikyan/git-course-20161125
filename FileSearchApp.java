@@ -49,7 +49,57 @@ public class FileSearchApp {
     }
 
     public void walkDirectory( String path) throws IOException {
-    //    walkDirectoryJava8(path);
-    //    zipFilesJava7();
+        walkDirectoryJava6(path);
+        zipFilesJava6();
     }
+	
+	public void walkDirectoryJava6(String path) throws IOException{
+        File dir = new File(path);
+        File[] files = dir.listFiles();
+        
+        for( File file : files){
+            if( file.isDirectory()){
+                walkDirectoryJava6( file.getAbsolutePath());
+            }
+            else{
+                processFile(file);
+            }
+        }
+   }
+   
+   public void zipFilesJava6() throws IOException {
+        ZipOutputStream out = null;
+        
+        try{
+            out = new ZipOutputStream( new FileOutputStream( getZipFileName() ));
+            File baseDir = new File( getPath() );
+            for( File file : zipFiles ){
+                String fileName = getRelativeFileName( file, baseDir);
+                
+                ZipEntry zipEntry = new ZipEntry(fileName);
+                zipEntry.setTime( file.lastModified() );
+                out.putNextEntry( zipEntry );
+                
+                int bufferSize = 2048;
+                byte [] buffer = new byte[bufferSize];
+                int len = 0;
+                
+                BufferedInputStream in = new BufferedInputStream(
+                        new FileInputStream(file), bufferSize
+                );
+                
+                while( (len = in.read(buffer, 0, bufferSize)) != -1 ){
+                    out.write( buffer, 0, len);
+                }
+                
+                in.close();
+                out.closeEntry();
+            } //for
+            
+        }
+        finally{
+                out.close();
+            }
+    }
+	
 }
